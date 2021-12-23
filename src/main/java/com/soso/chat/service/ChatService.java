@@ -1,3 +1,4 @@
+/*
 package com.soso.chat.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -53,10 +54,11 @@ public class ChatService {
     // 메시지 발송
     public <T> void sendMessage(WebSocketSession session, T message) {
         try {
-            // 지정한 WebSocket 세션에 메세지 발송
+            //지정한 WebSocket 세션에 메세지 발송
             session.sendMessage(new TextMessage(objectMapper.writeValueAsString(message)));
         } catch (IOException e) {
             log.error(e.getMessage(), e);
         }
     }
 }
+*/

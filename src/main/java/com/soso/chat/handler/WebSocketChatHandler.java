@@ -1,3 +1,4 @@
+/*
 package com.soso.chat.handler;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -38,3 +39,4 @@ public class WebSocketChatHandler extends TextWebSocketHandler {
 
 
 }
+*/
