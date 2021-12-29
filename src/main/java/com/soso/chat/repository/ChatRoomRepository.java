@@ -1,6 +1,7 @@
 package com.soso.chat.repository;
 
 import com.soso.chat.dto.ChatRoom;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
 
 import javax.annotation.PostConstruct;
@@ -8,6 +9,7 @@ import java.util.*;
 
 
 // 채팅방을 생성하고 정보를 조회하는 Repository(service 대체)
+@RequiredArgsConstructor
 @Repository
 public class ChatRoomRepository {
 

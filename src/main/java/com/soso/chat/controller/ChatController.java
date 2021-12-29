@@ -1,6 +1,9 @@
 package com.soso.chat.controller;
 
 import com.soso.chat.dto.ChatMessage;
+import com.soso.chat.dto.ChatRoom;
+import com.soso.chat.pubsub.RedisPublisher;
+import com.soso.chat.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
@@ -9,7 +12,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequiredArgsConstructor
 @Controller
-@RequestMapping("/chat")
 public class ChatController {
 /*
 
@@ -44,13 +46,24 @@ public class ChatController {
 
 */
 
+/*
     private final SimpMessageSendingOperations messagingTemplate;
+*/
+    private final RedisPublisher redisPublisher;
+    private final ChatRoomRepository chatRoomRepository;
+
+    /**
+     * websocket "/pub/chat/message"로 들어오는 메세징을 처리
+     */
 
     @MessageMapping("/chat/message")
     public void message(ChatMessage message) {
-        if(ChatMessage.MessageType.ENTER.equals(message.getType()))
+        if(ChatMessage.MessageType.ENTER.equals(message.getType())) {
+            chatRoomRepository.enterChatRoom(message.getRoomId());
             message.setMessage(message.getSender() + "님이 입장하셨습니다.");
-        messagingTemplate.convertAndSend("/sub/chat/room/" + message.getRoomId(), message);
+        }
+        // websocket에 발행된 메세지를 redis로 발행한다(publish)
+        redisPublisher.publish(chatRoomRepository.getTopic(message.getRoomId(), message);
     }
 
 
