@@ -1,16 +1,13 @@
 package com.soso.chat.controller;
 
 import com.soso.chat.dto.ChatMessage;
-import com.soso.chat.dto.ChatRoom;
 import com.soso.chat.jwt.JwtTokenProvider;
-import com.soso.chat.pubsub.RedisPublisher;
-import com.soso.chat.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.listener.ChannelTopic;
 import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
 
 @RequiredArgsConstructor
 @Controller
@@ -46,13 +43,14 @@ public class ChatController {
     if(메세지 발행) -> /sub/chat/room/{roomID}로 메세지 send
     클라이언트      -> /sub/chat/room/{roomID}(= 채팅룸 구분값 = topic) -> 메세지 전달 -> view 출력
 
-*/
 
-/*
     private final SimpMessageSendingOperations messagingTemplate;
-*/
     private final RedisPublisher redisPublisher;
+
     private final ChatRoomRepository chatRoomRepository;
+*/
+    private final RedisTemplate redisTemplate;
+    private final ChannelTopic channelTopic;
     private final JwtTokenProvider jwtTokenProvider;
 
     /**
@@ -63,13 +61,14 @@ public class ChatController {
     public void message(ChatMessage message, @Header("token") String token ) {
         // 회원 대화명(id)을 조회하는 코드를 삽입 -> 유효성 체크 -> 유효하지 않은 토큰이 세팅될 경우 메세지 무시
         String nickname = jwtTokenProvider.getUserNameFormJwt(token);
+        message.setSender(nickname);
 
         if(ChatMessage.MessageType.ENTER.equals(message.getType())) {
-            chatRoomRepository.enterChatRoom(message.getRoomId());
-            message.setMessage(nickname + "님이 입장하셨습니다.");
+           message.setSender("[알림]");
+           message.setMessage(nickname + "님이 입장하셨습니다.");
         }
         // websocket에 발행된 메세지를 redis로 발행한다(publish)
-        redisPublisher.publish(chatRoomRepository.getTopic(message.getRoomId()), message);
+        redisTemplate.convertAndSend(channelTopic.getTopic(), message);
     }
 
 
