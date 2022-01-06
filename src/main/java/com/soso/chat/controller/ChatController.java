@@ -2,9 +2,11 @@ package com.soso.chat.controller;
 
 import com.soso.chat.dto.ChatMessage;
 import com.soso.chat.dto.ChatRoom;
+import com.soso.chat.jwt.JwtTokenProvider;
 import com.soso.chat.pubsub.RedisPublisher;
 import com.soso.chat.repository.ChatRoomRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.simp.SimpMessageSendingOperations;
 import org.springframework.stereotype.Controller;
@@ -51,16 +53,20 @@ public class ChatController {
 */
     private final RedisPublisher redisPublisher;
     private final ChatRoomRepository chatRoomRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
     /**
      * websocket "/pub/chat/message"로 들어오는 메세징을 처리
+     * 메세지 send -> jwt token 유효성 검사
      */
-
     @MessageMapping("/chat/message")
-    public void message(ChatMessage message) {
+    public void message(ChatMessage message, @Header("token") String token ) {
+        // 회원 대화명(id)을 조회하는 코드를 삽입 -> 유효성 체크 -> 유효하지 않은 토큰이 세팅될 경우 메세지 무시
+        String nickname = jwtTokenProvider.getUserNameFormJwt(token);
+
         if(ChatMessage.MessageType.ENTER.equals(message.getType())) {
             chatRoomRepository.enterChatRoom(message.getRoomId());
-            message.setMessage(message.getSender() + "님이 입장하셨습니다.");
+            message.setMessage(nickname + "님이 입장하셨습니다.");
         }
         // websocket에 발행된 메세지를 redis로 발행한다(publish)
         redisPublisher.publish(chatRoomRepository.getTopic(message.getRoomId()), message);

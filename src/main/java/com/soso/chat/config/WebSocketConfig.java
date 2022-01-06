@@ -1,12 +1,15 @@
 package com.soso.chat.config;
 
+import com.soso.chat.handler.StompHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.messaging.simp.config.ChannelRegistration;
 import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.WebSocketHandler;
 import org.springframework.web.socket.config.annotation.*;
 
 
+@RequiredArgsConstructor
 @Configuration
 @EnableWebSocketMessageBroker  // Stomp 사용하기 위함
 public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
@@ -19,6 +22,8 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         // endpoint = 양 사용자 간 웹소켓 핸드셰이크를 위해 지정(WebSocket에 접속하기 위한)
         registry.addHandler(webSocketHandler, "/ws/chat").setAllowedOrigins("*");
     }*/
+
+    private final StompHandler stompHandler;
 
     // pub/sub 메세징을 구현
     @Override
@@ -36,5 +41,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
                 .withSockJS();
     }
 
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(stompHandler);
+    }
 
 }
